@@ -346,6 +346,23 @@
     font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--stone); text-align:right;
   }
   .footer-meta a:hover{ color:var(--red); }
+  .contact-form{ margin-top:34px; display:flex; flex-direction:column; gap:20px; width:min(520px,90vw); }
+  .contact-form label{ display:flex; flex-direction:column; gap:8px; }
+  .contact-form label span{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--stone); }
+  .contact-form input, .contact-form textarea{
+    font-family:'Inter', sans-serif; font-size:16px; color:var(--ink);
+    background:transparent; border:none; border-bottom:1px solid var(--line);
+    padding:8px 0; outline:none; resize:vertical; border-radius:0;
+  }
+  .contact-form input:focus, .contact-form textarea:focus{ border-bottom-color:var(--red); }
+  .contact-form textarea::placeholder{ color:var(--stone); opacity:.7; }
+  .contact-form button.footer-cta{ background:none; border-top:none; border-left:none; border-right:none; cursor:pointer; color:var(--ink); align-self:flex-start; margin-top:6px; }
+  .contact-form button.footer-cta:hover{ color:var(--red); border-bottom-color:var(--red); }
+  .contact-form button[disabled]{ opacity:.5; cursor:wait; }
+  .contact-form .hp{ position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+  .form-status{ font-family:'IBM Plex Mono', monospace; font-size:12px; min-height:1em; }
+  .form-status.ok{ color:var(--ink); }
+  .form-status.err{ color:var(--red); }
   .founder-photo{
     width:104px; height:104px;
     border-radius:10px;
@@ -465,10 +482,21 @@
     <div>
       <div class="eyebrow">Get in touch</div>
       <h2 style="margin-top:22px;">Let's open<br><em>the aperture.</em></h2>
-      <a class="footer-cta" href="mailto:dilipkl@icloud.com">Get in touch →</a>
+      <form class="contact-form" id="contactForm" novalidate>
+        <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label>
+          <span>Your name</span>
+          <input type="text" name="name" required maxlength="80" autocomplete="name">
+        </label>
+        <label>
+          <span>Message</span>
+          <textarea name="message" required rows="4" maxlength="2000" placeholder="Tell me about your idea. Add your email or phone if you'd like a reply."></textarea>
+        </label>
+        <button type="submit" class="footer-cta">Send message →</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
     </div>
     <div class="footer-meta">
-      <span>dilipkl@icloud.com</span>
       <span>📍 Denmark</span>
       <a href="https://www.instagram.com/a2dk_studio" target="_blank" rel="noopener">@a2dk_studio</a>
     </div>
@@ -546,5 +574,28 @@
   });
 </script>
 
+<script>
+(function(){
+  var f=document.getElementById('contactForm'); if(!f) return;
+  var st=f.querySelector('.form-status'), btn=f.querySelector('button');
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=f.name.value.trim(), msg=f.message.value.trim();
+    st.className='form-status';
+    if(!name||!msg){ st.textContent='Please add your name and a message.'; st.classList.add('err'); return; }
+    if(f._honey.value){ return; }
+    btn.disabled=true; st.textContent='Sending…';
+    fetch('https://formsubmit.co/ajax/dilipkl@icloud.com',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({name:name,message:msg,_subject:'New message from a2dkstudio.com',_template:'table',_captcha:'false'})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d && (d.success===true||d.success==='true')){ f.reset(); st.textContent='Thank you — your message has been sent.'; st.classList.add('ok'); }
+      else { throw new Error(d&&d.message); }
+    }).catch(function(){ st.textContent='Sorry, something went wrong. Please try again or message @a2dk_studio on Instagram.'; st.classList.add('err'); })
+    .finally(function(){ btn.disabled=false; });
+  });
+})();
+</script>
 </body>
 </html>
